@@ -1,0 +1,870 @@
+<!doctype html>
+<html lang="id" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulasi Kata Sandi Aman - IFP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <style>
+    body {
+      box-sizing: border-box;
+    }
+    
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); }
+      50% { box-shadow: 0 0 30px rgba(59, 130, 246, 0.8); }
+    }
+    
+    .password-input {
+      transition: all 0.3s ease;
+    }
+    
+    .criteria-item {
+      transition: all 0.3s ease;
+    }
+    
+    .strength-bar {
+      transition: width 0.5s ease, background-color 0.5s ease;
+    }
+    
+    .feedback-card {
+      transition: all 0.4s ease;
+      animation: slideIn 0.5s ease-out;
+    }
+    
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .checkmark {
+      transition: all 0.3s ease;
+    }
+
+    .key-btn-compact {
+      padding: 0.375rem 0.5rem;
+      background: linear-gradient(145deg, #ffffff, #e6e6e6);
+      border: 1px solid #d1d5db;
+      border-radius: 0.25rem;
+      font-weight: 600;
+      font-size: 0.75rem;
+      color: #374151;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      min-width: 32px;
+      flex: 1;
+    }
+
+    .key-btn-compact:hover {
+      background: linear-gradient(145deg, #f3f4f6, #d1d5db);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    }
+
+    .key-btn-compact:active {
+      transform: translateY(0);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+      background: linear-gradient(145deg, #e5e7eb, #d1d5db);
+    }
+
+    .key-btn-letter {
+      padding: 0.5rem 0.6rem;
+      background: linear-gradient(145deg, #ffffff, #e6e6e6);
+      border: 1px solid #d1d5db;
+      border-radius: 0.375rem;
+      font-weight: 600;
+      font-size: 0.875rem;
+      color: #374151;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      min-width: 36px;
+      flex: 1;
+      text-transform: lowercase;
+    }
+
+    .key-btn-letter:hover {
+      background: linear-gradient(145deg, #f3f4f6, #d1d5db);
+      transform: translateY(-2px);
+      box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+    }
+
+    .key-btn-letter:active {
+      transform: translateY(0);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+      background: linear-gradient(145deg, #e5e7eb, #d1d5db);
+    }
+
+    .key-btn-letter.uppercase {
+      text-transform: uppercase;
+      background: linear-gradient(145deg, #dbeafe, #bfdbfe);
+      border-color: #60a5fa;
+    }
+
+    .key-btn-special {
+      padding: 0.5rem 0.6rem;
+      background: linear-gradient(145deg, #e5e7eb, #d1d5db);
+      border: 1px solid #9ca3af;
+      border-radius: 0.375rem;
+      font-weight: 700;
+      font-size: 0.75rem;
+      color: #374151;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      min-width: 40px;
+    }
+
+    .key-btn-special:hover {
+      background: linear-gradient(145deg, #f3f4f6, #e5e7eb);
+      transform: translateY(-2px);
+      box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+    }
+
+    .key-btn-special:active {
+      transform: translateY(0);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+      background: linear-gradient(145deg, #d1d5db, #9ca3af);
+    }
+
+    #shift-btn.active {
+      background: linear-gradient(145deg, #93c5fd, #60a5fa);
+      border-color: #3b82f6;
+      color: white;
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full m-0 p-0">
+  <div id="app-container" class="h-full w-full flex flex-col" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"><!-- Header -->
+   <div class="px-8 py-6" style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px);">
+    <h1 id="main-title" class="text-white font-bold mb-2" style="font-size: 2.25rem; text-align: center; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">🔐 Simulasi Kata Sandi Aman</h1>
+    <p id="subtitle" class="text-white text-center" style="font-size: 1.125rem; opacity: 0.95;">Pelajari cara membuat kata sandi yang kuat dan aman</p>
+   </div><!-- Main Content -->
+   <div class="flex-1 px-8 py-6 overflow-auto">
+    <div class="max-w-7xl mx-auto"><!-- Instruction Card -->
+     <div class="mb-6 p-6 rounded-2xl" style="background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%); box-shadow: 0 10px 40px rgba(253, 203, 110, 0.4); border: 3px solid #fdcb6e;">
+      <p id="instruction-text" class="text-gray-800 text-center font-bold" style="font-size: 1.25rem; text-shadow: 1px 1px 2px rgba(255,255,255,0.5);">Masukkan kata sandi di bawah ini dan lihat tingkat keamanannya secara <i>real-time</i>!</p>
+     </div>
+     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6"><!-- Column 1: Password Input with Virtual Keyboard -->
+      <div class="lg:col-span-2"><!-- Password Input Card -->
+       <div class="p-6 rounded-2xl mb-6" style="background: rgba(255, 255, 255, 0.98); box-shadow: 0 10px 40px rgba(0,0,0,0.15); border: 3px solid #74b9ff;"><label for="password-input" class="block text-gray-800 font-bold mb-4 flex items-center" style="font-size: 1.375rem;"> <span class="text-4xl mr-3">🔑</span> Masukkan Kata Sandi: </label>
+        <div class="relative mb-4"><input type="text" id="password-input" class="password-input w-full px-5 py-4 border-3 rounded-xl focus:outline-none text-gray-800" style="font-size: 1.5rem; border: 3px solid #74b9ff; font-family: monospace; padding-right: 4.5rem; box-shadow: 0 4px 15px rgba(116, 185, 255, 0.3);" placeholder="Masukkan kata sandimu" autocomplete="off"> <button id="toggle-visibility" class="absolute right-4 top-1/2 transform -translate-y-1/2 text-3xl hover:scale-110 transition-transform" style="background: none; border: none; cursor: pointer; padding: 0.5rem;"> 👁️ </button>
+        </div>
+        <div class="mb-6">
+         <div class="flex justify-between items-center mb-3"><span class="text-gray-700 font-bold" style="font-size: 1.125rem;">Tingkat Kekuatan:</span> <span id="strength-label" class="font-bold px-4 py-1 rounded-full" style="font-size: 1.125rem; color: #718096; background: #e2e8f0;">Belum Diisi</span>
+         </div>
+         <div class="w-full h-6 bg-gray-200 rounded-full overflow-hidden" style="box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
+          <div id="strength-bar" class="strength-bar h-full rounded-full" style="width: 0%; background-color: #cbd5e0;"></div>
+         </div>
+        </div><!-- Virtual Keyboard -->
+        <div id="virtual-keyboard" class="p-4 rounded-xl" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border: 2px solid #dee2e6;">
+         <div class="flex justify-between items-center mb-3">
+          <h4 class="text-gray-800 font-bold flex items-center" style="font-size: 1rem;"><span class="text-2xl mr-2">⌨️</span> Papan Ketik Virtual</h4>
+          <div id="keyboard-mode-indicator" class="text-sm font-bold px-3 py-1 rounded-full" style="background: #74b9ff; color: white;">
+           ABC
+          </div>
+         </div><!-- Keyboard Layout - Letters Mode -->
+         <div id="keyboard-letters" class="space-y-2"><!-- Row 1: Letters Q-P -->
+          <div class="flex gap-1"><button class="key-btn-letter" data-key="q">q</button> <button class="key-btn-letter" data-key="w">w</button> <button class="key-btn-letter" data-key="e">e</button> <button class="key-btn-letter" data-key="r">r</button> <button class="key-btn-letter" data-key="t">t</button> <button class="key-btn-letter" data-key="y">y</button> <button class="key-btn-letter" data-key="u">u</button> <button class="key-btn-letter" data-key="i">i</button> <button class="key-btn-letter" data-key="o">o</button> <button class="key-btn-letter" data-key="p">p</button>
+          </div><!-- Row 2: Letters A-L -->
+          <div class="flex gap-1 px-2"><button class="key-btn-letter" data-key="a">a</button> <button class="key-btn-letter" data-key="s">s</button> <button class="key-btn-letter" data-key="d">d</button> <button class="key-btn-letter" data-key="f">f</button> <button class="key-btn-letter" data-key="g">g</button> <button class="key-btn-letter" data-key="h">h</button> <button class="key-btn-letter" data-key="j">j</button> <button class="key-btn-letter" data-key="k">k</button> <button class="key-btn-letter" data-key="l">l</button>
+          </div><!-- Row 3: Shift + Letters Z-M + Backspace -->
+          <div class="flex gap-1"><button id="shift-btn" class="key-btn-special" style="flex: 1.5;">⇧</button> <button class="key-btn-letter" data-key="z">z</button> <button class="key-btn-letter" data-key="x">x</button> <button class="key-btn-letter" data-key="c">c</button> <button class="key-btn-letter" data-key="v">v</button> <button class="key-btn-letter" data-key="b">b</button> <button class="key-btn-letter" data-key="n">n</button> <button class="key-btn-letter" data-key="m">m</button> <button id="backspace-btn" class="key-btn-special" style="flex: 1.5; background: linear-gradient(145deg, #ff7675, #d63031); color: white;">⌫</button>
+          </div><!-- Row 4: Mode Switch + Space -->
+          <div class="flex gap-1"><button id="numbers-mode-btn" class="key-btn-special" style="flex: 1.5;">?123</button> <button id="space-btn" class="key-btn-special" style="flex: 5;" data-key=" ">SPASI</button> <button id="clear-btn" class="key-btn-special" style="flex: 1.5; background: linear-gradient(145deg, #fdcb6e, #e17055); color: white;">Clear</button>
+          </div>
+         </div><!-- Keyboard Layout - Numbers & Symbols Mode 1 -->
+         <div id="keyboard-numbers" class="space-y-2" style="display: none;"><!-- Row 1: Numbers -->
+          <div class="flex gap-1"><button class="key-btn-compact" data-key="1">1</button> <button class="key-btn-compact" data-key="2">2</button> <button class="key-btn-compact" data-key="3">3</button> <button class="key-btn-compact" data-key="4">4</button> <button class="key-btn-compact" data-key="5">5</button> <button class="key-btn-compact" data-key="6">6</button> <button class="key-btn-compact" data-key="7">7</button> <button class="key-btn-compact" data-key="8">8</button> <button class="key-btn-compact" data-key="9">9</button> <button class="key-btn-compact" data-key="0">0</button>
+          </div><!-- Row 2: Common Symbols -->
+          <div class="flex gap-1"><button class="key-btn-compact" data-key="@">@</button> <button class="key-btn-compact" data-key="#">#</button> <button class="key-btn-compact" data-key="$">$</button> <button class="key-btn-compact" data-key="_">_</button> <button class="key-btn-compact" data-key="&amp;">&amp;</button> <button class="key-btn-compact" data-key="-">-</button> <button class="key-btn-compact" data-key="+">+</button> <button class="key-btn-compact" data-key="(">(</button> <button class="key-btn-compact" data-key=")">)</button> <button class="key-btn-compact" data-key="/">/</button>
+          </div><!-- Row 3: More Symbols + Backspace -->
+          <div class="flex gap-1"><button id="symbols-mode-btn" class="key-btn-special" style="flex: 1.5;">=\&lt;</button> <button class="key-btn-compact" data-key="*">*</button> <button class="key-btn-compact" data-key="&quot;">"</button> <button class="key-btn-compact" data-key="'">'</button> <button class="key-btn-compact" data-key=":">:</button> <button class="key-btn-compact" data-key=";">;</button> <button class="key-btn-compact" data-key="!">!</button> <button class="key-btn-compact" data-key="?">?</button> <button id="backspace-btn-num" class="key-btn-special" style="flex: 1.5; background: linear-gradient(145deg, #ff7675, #d63031); color: white;">⌫</button>
+          </div><!-- Row 4: Back to ABC + Space -->
+          <div class="flex gap-1"><button id="letters-mode-btn" class="key-btn-special" style="flex: 1.5;">ABC</button> <button id="space-btn-num" class="key-btn-special" style="flex: 5;" data-key=" ">SPASI</button> <button id="clear-btn-num" class="key-btn-special" style="flex: 1.5; background: linear-gradient(145deg, #fdcb6e, #e17055); color: white;">Clear</button>
+          </div>
+         </div><!-- Keyboard Layout - More Symbols Mode 2 -->
+         <div id="keyboard-symbols" class="space-y-2" style="display: none;"><!-- Row 1: Special Symbols -->
+          <div class="flex gap-1"><button class="key-btn-compact" data-key="~">~</button> <button class="key-btn-compact" data-key="`">`</button> <button class="key-btn-compact" data-key="|">|</button> <button class="key-btn-compact" data-key="•">•</button> <button class="key-btn-compact" data-key="√">√</button> <button class="key-btn-compact" data-key="π">π</button> <button class="key-btn-compact" data-key="÷">÷</button> <button class="key-btn-compact" data-key="×">×</button> <button class="key-btn-compact" data-key="¶">¶</button> <button class="key-btn-compact" data-key="°">°</button>
+          </div><!-- Row 2: More Symbols -->
+          <div class="flex gap-1"><button class="key-btn-compact" data-key="£">£</button> <button class="key-btn-compact" data-key="¢">¢</button> <button class="key-btn-compact" data-key="€">€</button> <button class="key-btn-compact" data-key="¥">¥</button> <button class="key-btn-compact" data-key="^">^</button> <button class="key-btn-compact" data-key="%">%</button> <button class="key-btn-compact" data-key="=">=</button> <button class="key-btn-compact" data-key="{">{</button> <button class="key-btn-compact" data-key="}">}</button> <button class="key-btn-compact" data-key="\\">\</button>
+          </div><!-- Row 3: Additional Symbols + Backspace -->
+          <div class="flex gap-1"><button id="numbers-mode-btn-2" class="key-btn-special" style="flex: 1.5;">?123</button> <button class="key-btn-compact" data-key="©">©</button> <button class="key-btn-compact" data-key="®">®</button> <button class="key-btn-compact" data-key="™">™</button> <button class="key-btn-compact" data-key="[">[</button> <button class="key-btn-compact" data-key="]">]</button> <button class="key-btn-compact" data-key="<">&lt;</button> <button class="key-btn-compact" data-key=">">&gt;</button> <button id="backspace-btn-sym" class="key-btn-special" style="flex: 1.5; background: linear-gradient(145deg, #ff7675, #d63031); color: white;">⌫</button>
+          </div><!-- Row 4: Back to ABC + Space -->
+          <div class="flex gap-1"><button id="letters-mode-btn-2" class="key-btn-special" style="flex: 1.5;">ABC</button> <button id="space-btn-sym" class="key-btn-special" style="flex: 5;" data-key=" ">SPASI</button> <button id="clear-btn-sym" class="key-btn-special" style="flex: 1.5; background: linear-gradient(145deg, #fdcb6e, #e17055); color: white;">Clear</button>
+          </div>
+         </div>
+        </div>
+       </div><!-- Criteria Card -->
+       <div class="p-6 rounded-2xl" style="background: rgba(255, 255, 255, 0.98); box-shadow: 0 10px 40px rgba(0,0,0,0.15); border: 3px solid #00b894;">
+        <h3 class="text-gray-800 font-bold mb-5 flex items-center" style="font-size: 1.375rem;"><span class="text-4xl mr-3">📋</span> Kriteria Keamanan</h3>
+        <div class="space-y-3">
+         <div id="criteria-length" class="criteria-item flex items-center p-4 rounded-xl transition-all" style="background: #f0f0f0; border: 2px solid #ddd;"><span class="checkmark text-4xl mr-3">⭕</span> <span class="text-gray-800 font-medium" style="font-size: 1.063rem;">Minimal 8 karakter</span>
+         </div>
+         <div id="criteria-uppercase" class="criteria-item flex items-center p-4 rounded-xl transition-all" style="background: #f0f0f0; border: 2px solid #ddd;"><span class="checkmark text-4xl mr-3">⭕</span> <span class="text-gray-800 font-medium" style="font-size: 1.063rem;">Ada huruf BESAR (A-Z)</span>
+         </div>
+         <div id="criteria-lowercase" class="criteria-item flex items-center p-4 rounded-xl transition-all" style="background: #f0f0f0; border: 2px solid #ddd;"><span class="checkmark text-4xl mr-3">⭕</span> <span class="text-gray-800 font-medium" style="font-size: 1.063rem;">Ada huruf kecil (a-z)</span>
+         </div>
+         <div id="criteria-number" class="criteria-item flex items-center p-4 rounded-xl transition-all" style="background: #f0f0f0; border: 2px solid #ddd;"><span class="checkmark text-4xl mr-3">⭕</span> <span class="text-gray-800 font-medium" style="font-size: 1.063rem;">Ada angka (0-9)</span>
+         </div>
+         <div id="criteria-special" class="criteria-item flex items-center p-4 rounded-xl transition-all" style="background: #f0f0f0; border: 2px solid #ddd;"><span class="checkmark text-4xl mr-3">⭕</span> <span class="text-gray-800 font-medium" style="font-size: 1.063rem;">Ada simbol (!@#$%^&amp;*)</span>
+         </div>
+        </div>
+       </div>
+      </div><!-- Column 2: Feedback & Visualization -->
+      <div class="space-y-6"><!-- Feedback Card -->
+       <div id="feedback-container" class="p-6 rounded-2xl" style="background: rgba(255, 255, 255, 0.98); box-shadow: 0 10px 40px rgba(0,0,0,0.15); border: 3px solid #fd79a8;">
+        <h3 class="text-gray-800 font-bold mb-5 flex items-center" style="font-size: 1.375rem;"><span class="text-4xl mr-3">💬</span> Umpan Balik</h3>
+        <div id="feedback-content" class="text-gray-700 text-center py-6" style="font-size: 1rem;">
+         Mulai mengetik untuk melihat umpan balik keamanan kata sandimu
+        </div>
+       </div><!-- Security Visualization -->
+       <div class="p-6 rounded-2xl" style="background: rgba(255, 255, 255, 0.98); box-shadow: 0 10px 40px rgba(0,0,0,0.15); border: 3px solid #a29bfe;">
+        <h3 class="text-gray-800 font-bold mb-5 flex items-center" style="font-size: 1.375rem;"><span class="text-4xl mr-3">🛡️</span> Status Keamanan</h3><!-- Account Visual -->
+        <div class="mb-5 text-center">
+         <div id="account-shield" class="inline-block p-5 rounded-2xl transition-all duration-500" style="background: #e2e8f0; border: 3px solid #cbd5e0;">
+          <div class="text-6xl mb-2">
+           👤
+          </div>
+          <div class="font-bold text-gray-800 mb-1" style="font-size: 1.125rem;">
+           Akun Saya
+          </div>
+          <div id="account-status" class="text-sm font-bold px-3 py-1 rounded-full" style="color: #718096; background: #cbd5e0;">
+           Belum Dilindungi
+          </div>
+         </div>
+        </div><!-- Security Layers -->
+        <div class="space-y-3">
+         <div id="layer-basic" class="p-3 rounded-xl transition-all duration-500" style="background: #f7fafc; border-left: 5px solid #cbd5e0;">
+          <div class="flex items-center"><span class="text-3xl mr-3">🔓</span>
+           <div class="flex-1">
+            <div class="font-bold text-gray-800" style="font-size: 0.938rem;">
+             Lapisan Dasar
+            </div>
+            <div class="text-gray-600" style="font-size: 0.813rem;">
+             Perlindungan minimal
+            </div>
+           </div><span id="check-basic" class="text-3xl opacity-0">⭕</span>
+          </div>
+         </div>
+         <div id="layer-medium" class="p-3 rounded-xl transition-all duration-500" style="background: #f7fafc; border-left: 5px solid #cbd5e0;">
+          <div class="flex items-center"><span class="text-3xl mr-3">🔐</span>
+           <div class="flex-1">
+            <div class="font-bold text-gray-800" style="font-size: 0.938rem;">
+             Lapisan Menengah
+            </div>
+            <div class="text-gray-600" style="font-size: 0.813rem;">
+             Kombinasi karakter
+            </div>
+           </div><span id="check-medium" class="text-3xl opacity-0">⭕</span>
+          </div>
+         </div>
+         <div id="layer-strong" class="p-3 rounded-xl transition-all duration-500" style="background: #f7fafc; border-left: 5px solid #cbd5e0;">
+          <div class="flex items-center"><span class="text-3xl mr-3">🛡️</span>
+           <div class="flex-1">
+            <div class="font-bold text-gray-800" style="font-size: 0.938rem;">
+             Lapisan Maksimal
+            </div>
+            <div class="text-gray-600" style="font-size: 0.813rem;">
+             Perlindungan penuh
+            </div>
+           </div><span id="check-strong" class="text-3xl opacity-0">⭕</span>
+          </div>
+         </div>
+        </div><!-- Attack Simulation -->
+        <div class="mt-5 p-4 rounded-xl" style="background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%); border: 3px solid #fdcb6e;">
+         <div class="flex items-start"><span class="text-4xl mr-3"></span>
+          <div class="flex-1">
+           <div class="font-bold text-gray-800 mb-2" style="font-size: 1rem;">
+            Simulasi Serangan <i>Hacker</i>:
+           </div>
+           <div id="attack-status" class="text-gray-700" style="font-size: 0.875rem;">
+            Masukkan kata sandi untuk melihat review kriteria keamanan dan berapa lama waktu yang dibutuhkan peretas untuk membobol akunmu.
+           </div>
+           <div id="crack-time" class="mt-2 font-bold text-orange-700 px-3 py-1 rounded-lg" style="font-size: 0.938rem; display: none; background: rgba(255,255,255,0.6);"></div>
+          </div>
+         </div>
+        </div>
+       </div>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div>
+  <script>
+    const defaultConfig = {
+      main_title: "🔐 Simulasi Kata Sandi Aman",
+      subtitle: "Pelajari cara membuat kata sandi yang kuat dan aman",
+      instruction_text: "Masukkan kata sandi di bawah ini dan lihat tingkat keamanannya secara <i>real-time</i>!",
+      weak_feedback: "⚠️ Kata Sandi Lemah: Kata sandi ini terlalu sederhana dan mudah ditebak. Risiko kebocoran data sangat tinggi! Hindari penggunaan kata sandi seperti ini untuk semua akun.",
+      medium_feedback: "⚡ Kata Sandi Kuat: Kata sandi ini sudah lebih aman dengan kombinasi karakter yang bervariasi. Namun, masih dapat ditingkatkan dengan menambahkan lebih banyak simbol dan karakter.",
+      strong_feedback: "✅ Kata Sandi Sangat Kuat: Kamu Hebat! Kata sandi ini sangat sulit ditebak dan memberikan perlindungan maksimal untuk informasi pribadimu. Ini adalah praktik terbaik dalam keamanan digital!",
+      primary_color: "#667eea",
+      secondary_color: "#764ba2",
+      text_color: "#1a202c",
+      background_color: "#ffffff",
+      accent_color: "#48bb78"
+    };
+
+    let config = { ...defaultConfig };
+
+    const passwordInput = document.getElementById('password-input');
+    const toggleVisibility = document.getElementById('toggle-visibility');
+    const strengthBar = document.getElementById('strength-bar');
+    const strengthLabel = document.getElementById('strength-label');
+    const feedbackContent = document.getElementById('feedback-content');
+    let isPasswordVisible = true;
+
+    function checkCriteria(password) {
+      const criteria = {
+        length: password.length >= 8,
+        uppercase: /[A-Z]/.test(password),
+        lowercase: /[a-z]/.test(password),
+        number: /[0-9]/.test(password),
+        special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)
+      };
+
+      updateCriteriaDisplay(criteria);
+      return criteria;
+    }
+
+    function updateCriteriaDisplay(criteria) {
+      const criteriaElements = {
+        length: document.getElementById('criteria-length'),
+        uppercase: document.getElementById('criteria-uppercase'),
+        lowercase: document.getElementById('criteria-lowercase'),
+        number: document.getElementById('criteria-number'),
+        special: document.getElementById('criteria-special')
+      };
+
+      for (const [key, element] of Object.entries(criteriaElements)) {
+        const checkmark = element.querySelector('.checkmark');
+        if (criteria[key]) {
+          checkmark.textContent = '✅';
+          element.style.background = 'linear-gradient(135deg, #c6f6d5 0%, #81ecec 50%)';
+          element.style.borderColor = '#00b894';
+          element.style.transform = 'scale(1.02)';
+        } else {
+          checkmark.textContent = '⭕';
+          element.style.background = '#f0f0f0';
+          element.style.borderColor = '#ddd';
+          element.style.transform = 'scale(1)';
+        }
+      }
+    }
+
+    function calculateStrength(password, criteria) {
+      if (password.length === 0) {
+        return { level: 0, text: 'Belum Diisi', color: '#cbd5e0', width: '0%' };
+      }
+
+      const metCriteria = Object.values(criteria).filter(v => v).length;
+
+      if (metCriteria <= 2) {
+        return { level: 1, text: 'Lemah', color: '#f56565', width: '33%' };
+      } else if (metCriteria <= 4) {
+        return { level: 2, text: 'Kuat', color: '#ed8936', width: '66%' };
+      } else {
+        return { level: 3, text: 'Sangat Kuat', color: '#48bb78', width: '100%' };
+      }
+    }
+
+    function updateFeedback(level) {
+      const feedbackTexts = {
+        0: '<p class="text-gray-500">Mulai mengetik untuk melihat umpan balik keamanan kata sandimu</p>',
+        1: `<div class="feedback-card p-4 rounded-lg" style="background: #fed7d7; border-left: 4px solid #f56565;">
+              <p class="text-gray-800 font-bold mb-2" style="font-size: 1.125rem;">⚠️ Tingkat 1: Kata Sandi Lemah</p>
+              <p class="text-gray-700" style="font-size: 1rem;">${config.weak_feedback || defaultConfig.weak_feedback}</p>
+              <div class="mt-4 p-3 rounded" style="background: rgba(255,255,255,0.5);">
+                <p class="text-gray-700 font-semibold" style="font-size: 0.875rem;">💭 Uraian:</p>
+                <p class="text-gray-600" style="font-size: 0.875rem;">Data pribadi mudah diretas dan dapat disalahgunakan untuk penipuan atau pencurian identitas pribadi.</p>
+              </div>
+            </div>`,
+        2: `<div class="feedback-card p-4 rounded-lg" style="background: #feebc8; border-left: 4px solid #ed8936;">
+              <p class="text-gray-800 font-bold mb-2" style="font-size: 1.125rem;">⚡ Tingkat 2: Kata Sandi Kuat</p>
+              <p class="text-gray-700" style="font-size: 1rem;">${config.medium_feedback || defaultConfig.medium_feedback}</p>
+              <div class="mt-4 p-3 rounded" style="background: rgba(255,255,255,0.5);">
+                <p class="text-gray-700 font-semibold" style="font-size: 0.875rem;">💭 Uraian:</p>
+                <p class="text-gray-600" style="font-size: 0.875rem;">Perlindungan lebih baik untuk informasi pribadi dan mengurangi risiko akses yang tidak sah.</p>
+              </div>
+            </div>`,
+        3: `<div class="feedback-card p-4 rounded-lg" style="background: #c6f6d5; border-left: 4px solid #48bb78;">
+              <p class="text-gray-800 font-bold mb-2" style="font-size: 1.125rem;">✅ Tingkat 3: Kata Sandi Sangat Kuat</p>
+              <p class="text-gray-700" style="font-size: 1rem;">${config.strong_feedback || defaultConfig.strong_feedback}</p>
+              <div class="mt-4 p-3 rounded" style="background: rgba(255,255,255,0.5);">
+                <p class="text-gray-700 font-semibold" style="font-size: 0.875rem;">💭 Uraian:</p>
+                <p class="text-gray-600" style="font-size: 0.875rem;">Menunjukkan rasa tanggung jawab digital yang tinggi, melindungi diri sendiri dan orang lain dari serangan siber.</p>
+              </div>
+              <div class="mt-4 p-3 rounded" style="background: #bee3f8;">
+                <p class="text-gray-700 font-semibold mb-2" style="font-size: 0.875rem;">🎯 Tip Tambahan:</p>
+                <ul class="text-gray-600 space-y-1" style="font-size: 0.875rem; list-style: disc; padding-left: 20px;">
+                  <li>Gunakan kata sandi yang berbeda untuk setiap akun</li>
+                  <li>Aktifkan autentikasi dua faktor</li>
+                  <li>Jangan membagikan kata sandi kepada siapa pun</li>
+                  <li>Ganti kata sandi secara berkala</li>
+                </ul>
+              </div>
+            </div>`
+      };
+
+      feedbackContent.innerHTML = feedbackTexts[level];
+    }
+
+    function getPasswordReview(length, level) {
+      let criteria = '';
+      let improvement = '';
+      let time = '';
+
+      if (level === 1) {
+        if (length < 6) {
+          criteria = '🚨 <strong>Sangat Berbahaya!</strong> Kata sandi ini terlalu pendek dan sangat mudah ditebak. Hanya menggunakan huruf kecil atau angka saja membuat peretas dapat membobol akun dalam hitungan detik!';
+          improvement = '• Tambahkan minimal 8 karakter<br>• Gunakan kombinasi huruf kapital dan kecil<br>• Sertakan angka (0-9)<br>• Tambahkan beberapa simbol (!@#$%^&*)';
+          time = 'Kurang dari 1 detik! ⚡';
+        } else if (length < 8) {
+          criteria = '⚠️ <strong>Kata Sandi Lemah!</strong> Meskipun sudah ada beberapa karakter, kata sandi ini masih sangat rentan karena hanya menggunakan huruf kecil dan angka. Peretas memiliki daftar jutaan kata sandi umum dan dapat langsung menebaknya.';
+          improvement = '• Perbanyak karakter minimal jadi 8-12 karakter<br>• Kombinasikan huruf kapital dan kecil (contoh: PaSsWoRd)<br>• Tambahkan beberapa simbol (!@#$%^&*)<br>• Hindari kata-kata umum, seperti "password123" atau "<i>qwerty</i>"';
+          time = 'Beberapa detik hingga menit! ⚡';
+        } else {
+          criteria = '⚠️ <strong>Masih Lemah!</strong> Kata sandi sudah cukup panjang, tetapi karena tidak ada variasi huruf kapital dan simbol, peretas masih bisa memecahkannya menggunakan teknik analisis pola dan serangan kamus.';
+          improvement = '• Ubah beberapa huruf kecil jadi huruf kapital<br>• Tambahkan simbol di tengah kata sandi (!@#$%)<br>• Jangan gunakan pola <i>keyboard</i>, seperti "asdfghjkl"<br>• Hindari tanggal lahir atau nama pribadi yang mudah ditebak';
+          time = 'Beberapa menit hingga 1 jam! ⚡';
+        }
+      } else if (level === 2) {
+        if (length < 8) {
+          criteria = '⚡ <strong>Akun lebih aman, tetapi masih dapat dibobol!</strong> Kata sandi sudah menggunakan kombinasi huruf kapital, kecil, dan angka. Namun, karena masih pendek, peretas dengan peralatan khusus (GPU) masih bisa memecahkannya dalam waktu beberapa jam.';
+          improvement = '• Panjangkan kata sandi minimal 10-12 karakter<br>• Tambahkan beberapa simbol (!@#$%^&*)<br>• Pastikan tidak ada pola yang mudah ditebak<br>• Contoh: "Rahasia123" → "R4h@s!A_2023#"';
+          time = 'Beberapa jam hingga hari!';
+        } else if (length < 10) {
+          criteria = '⚡ <strong>Akun lebih aman, tetapi masih dapat dibobol!</strong> Kombinasi huruf kapital, kecil, dan angka sudah bagus! Tapi ahli peretas menggunakan jaringan komputer masih dapat mencobanya dalam beberapa hari sampai minggu.';
+          improvement = '• Tambahkan minimal 2-3 simbol  (!@#$%^&*)<br>• Panjangkan jadi 12 karakter atau lebih<br>• Jangan gunakan kata-kata yang ada di kamus<br>• Contoh yang kuat: "Buk#_R4has!A29"';
+          time = 'Beberapa hari hingga minggu!';
+        } else {
+          criteria = '⚡ <strong>Akun lebih aman, tetapi masih dapat dibobol!</strong> Kata sandi ini sudah cukup panjang dan bervariasi. Namun, tanpa simbol, masih ada celah keamanan yang dapat dimanfaatkan peretas dengan teknologi modern.';
+          improvement = '• Tinggal sedikit lagi! Tambahkan beberapa simbol: !@#$%^&*<br>• Letakkan simbol di berbagai posisi (awal, tengah, akhir)<br>• Dengan menggunaakn simbol, kata sandi akan sangat kuat!<br>• Contoh: "MyPassword123" → "My#P@ssw0rd!23"';
+          time = 'Beberapa minggu hingga bulan!';
+        }
+      } else if (level === 3) {
+        if (length < 10) {
+          criteria = '🛡️ <strong>Kata Sandi Kuat!</strong> Sudah menggunakan kombinasi lengkap, yaitu huruf kapital, huruf kecil, angka, dan simbol. Kata sandi ini akan membtuhkan waktu beberapa bulan bahkan bertahun-tahun untuk dipecahkan dengan superkomputer!';
+          improvement = '• Kata sandi sudah bagus! <br>Untuk lebih aman lagi:<br>• Panjangkan kata sandi menjadi 12-15 karakter<br>• Ganti kata sandi secara berkala (3-6 bulan sekali)<br>• Aktifkan autentikasi 2 faktor<br>• Gunakan kata sandi yang berbeda untuk tiap akun';
+          time = 'Beberapa bulan hingga tahun!';
+        } else if (length < 12) {
+          criteria = '🛡️ <strong>Sangat Aman!</strong> Kombinasi lengkap dengan karakter yang panjang dapat membuat kata sandi ini sangat sulit diretas. Bahkan dengan teknologi tercanggih, perlu puluhan hingga ratusan tahun untuk meretasnya!';
+          improvement = '• Luar biasa! Kata sandi sudah sangat kuat!<br>• Tip tambahan untuk keamanan secara maksimal:<br>• Aktifkan autentikasi 2 faktor (verifikasi SMS/<i>email</i>)<br>• Jangan pernah memberi tahu kata sandi ke siapa pun<br>• Simpan di tempat yang aman (<i>password manager</i>)<br>• Ganti kata sandi secara berkala setiap 6 bulan';
+          time = 'Puluhan hingga ratusan tahun!';
+        } else {
+          criteria = '🏆 <strong>Kamu Hebat! Tidak Dapat Diretas!</strong> Kata sandi ini adalah tembok pertahanan digital yang sangat kuat! Dengan kombinasi lengkap dan panjang yang ideal, tidak mungkin diretas bahkan dengan teknologi modern. Kamu telah menguasai tingkat keamanan pada kata sandi!';
+          improvement = '• 🌟 Kata sandi Sangat Kuat! Tidak perlu diubah!<br>• Kebiasaan baik yang harus dilakukan:<br>• Jangan gunakan kata sandi yang sama pada tiap akun<br>• Aktifkan autentikasi 2 faktor di semua akun<br>• Waspadai <i>email phishing</i> atau <i>link</i> mencurigakan<br>• Bagikan pengetahuan ini ke teman-temanmu!';
+          time = 'Ribuan Tahun!';
+        }
+      }
+
+      return { criteria, improvement, time };
+    }
+
+    function updateSecurityVisualization(level, password) {
+      const accountShield = document.getElementById('account-shield');
+      const accountStatus = document.getElementById('account-status');
+      const layerBasic = document.getElementById('layer-basic');
+      const layerMedium = document.getElementById('layer-medium');
+      const layerStrong = document.getElementById('layer-strong');
+      const checkBasic = document.getElementById('check-basic');
+      const checkMedium = document.getElementById('check-medium');
+      const checkStrong = document.getElementById('check-strong');
+      const attackStatus = document.getElementById('attack-status');
+      const crackTime = document.getElementById('crack-time');
+
+      checkBasic.style.opacity = '0';
+      checkMedium.style.opacity = '0';
+      checkStrong.style.opacity = '0';
+
+      if (level === 0) {
+        accountShield.style.background = '#e2e8f0';
+        accountStatus.textContent = 'Belum Dilindungi';
+        accountStatus.style.color = '#718096';
+        
+        layerBasic.style.background = '#f7fafc';
+        layerBasic.style.borderLeftColor = '#cbd5e0';
+        layerMedium.style.background = '#f7fafc';
+        layerMedium.style.borderLeftColor = '#cbd5e0';
+        layerStrong.style.background = '#f7fafc';
+        layerStrong.style.borderLeftColor = '#cbd5e0';
+
+        attackStatus.innerHTML = '<p class="text-gray-600">Masukkan kata sandi untuk melihat <i>review</i> kriteria keamanan dan berapa lama waktu yang dibutuhkan peretas untuk membobol akunmu.</p>';
+        crackTime.style.display = 'none';
+      } else if (level === 1) {
+        accountShield.style.background = '#fed7d7';
+        accountStatus.textContent = '⚠️ Perlindungan Lemah';
+        accountStatus.style.color = '#c53030';
+        
+        layerBasic.style.background = '#fed7d7';
+        layerBasic.style.borderLeftColor = '#f56565';
+        checkBasic.style.opacity = '1';
+        checkBasic.textContent = '✅';
+
+        layerMedium.style.background = '#f7fafc';
+        layerMedium.style.borderLeftColor = '#cbd5e0';
+        layerStrong.style.background = '#f7fafc';
+        layerStrong.style.borderLeftColor = '#cbd5e0';
+
+        const reviewData = getPasswordReview(password.length, 1);
+        attackStatus.innerHTML = `
+          <div class="space-y-3">
+            <div>
+              <p class="font-bold text-red-700 mb-2" style="font-size: 1rem;">📋 Kriteria Kata Sandi:</p>
+              <p class="text-gray-700" style="font-size: 0.875rem; line-height: 1.6;">${reviewData.criteria}</p>
+            </div>
+            <div class="p-3 rounded-lg" style="background: rgba(255,255,255,0.5);">
+              <p class="font-bold text-gray-800 mb-2" style="font-size: 0.875rem;">💡 Cara Meningkatkan Keamanan:</p>
+              <p class="text-gray-700" style="font-size: 0.813rem; line-height: 1.6;">${reviewData.improvement}</p>
+            </div>
+          </div>
+        `;
+        crackTime.textContent = `⏱️ Waktu pembobolan: ${reviewData.time}`;
+        crackTime.style.color = '#c53030';
+        crackTime.style.display = 'block';
+      } else if (level === 2) {
+        accountShield.style.background = '#feebc8';
+        accountStatus.textContent = '⚡ Perlindungan Sedang';
+        accountStatus.style.color = '#c05621';
+        
+        layerBasic.style.background = '#c6f6d5';
+        layerBasic.style.borderLeftColor = '#48bb78';
+        checkBasic.style.opacity = '1';
+        checkBasic.textContent = '✅';
+
+        layerMedium.style.background = '#feebc8';
+        layerMedium.style.borderLeftColor = '#ed8936';
+        checkMedium.style.opacity = '1';
+        checkMedium.textContent = '✅';
+
+        layerStrong.style.background = '#f7fafc';
+        layerStrong.style.borderLeftColor = '#cbd5e0';
+
+        const reviewData = getPasswordReview(password.length, 2);
+        attackStatus.innerHTML = `
+          <div class="space-y-3">
+            <div>
+              <p class="font-bold text-orange-700 mb-2" style="font-size: 1rem;">📋 Kriteria Kata Sandi:</p>
+              <p class="text-gray-700" style="font-size: 0.875rem; line-height: 1.6;">${reviewData.criteria}</p>
+            </div>
+            <div class="p-3 rounded-lg" style="background: rgba(255,255,255,0.5);">
+              <p class="font-bold text-gray-800 mb-2" style="font-size: 0.875rem;">💡 Cara Meningkatkan Keamanan:</p>
+              <p class="text-gray-700" style="font-size: 0.813rem; line-height: 1.6;">${reviewData.improvement}</p>
+            </div>
+          </div>
+        `;
+        crackTime.textContent = `⏱️ Waktu pembobolan: ${reviewData.time}`;
+        crackTime.style.color = '#c05621';
+        crackTime.style.display = 'block';
+      } else if (level === 3) {
+        accountShield.style.background = '#c6f6d5';
+        accountStatus.textContent = '🛡️ Perlindungan Maksimal';
+        accountStatus.style.color = '#2f855a';
+        
+        layerBasic.style.background = '#c6f6d5';
+        layerBasic.style.borderLeftColor = '#48bb78';
+        checkBasic.style.opacity = '1';
+        checkBasic.textContent = '✅';
+
+        layerMedium.style.background = '#c6f6d5';
+        layerMedium.style.borderLeftColor = '#48bb78';
+        checkMedium.style.opacity = '1';
+        checkMedium.textContent = '✅';
+
+        layerStrong.style.background = '#c6f6d5';
+        layerStrong.style.borderLeftColor = '#48bb78';
+        checkStrong.style.opacity = '1';
+        checkStrong.textContent = '✅';
+
+        const reviewData = getPasswordReview(password.length, 3);
+        attackStatus.innerHTML = `
+          <div class="space-y-3">
+            <div>
+              <p class="font-bold text-green-700 mb-2" style="font-size: 1rem;">📋 Kriteria Kata Sandi:</p>
+              <p class="text-gray-700" style="font-size: 0.875rem; line-height: 1.6;">${reviewData.criteria}</p>
+            </div>
+            <div class="p-3 rounded-lg" style="background: rgba(255,255,255,0.5);">
+              <p class="font-bold text-gray-800 mb-2" style="font-size: 0.875rem;">💡 Cara Meningkatkan Keamanan:</p>
+              <p class="text-gray-700" style="font-size: 0.813rem; line-height: 1.6;">${reviewData.improvement}</p>
+            </div>
+          </div>
+        `;
+        crackTime.textContent = `⏱️ Waktu pembobolan: ${reviewData.time}`;
+        crackTime.style.color = '#2f855a';
+        crackTime.style.display = 'block';
+      }
+    }
+
+    function evaluatePassword() {
+      const password = passwordInput.value;
+      const criteria = checkCriteria(password);
+      const strength = calculateStrength(password, criteria);
+
+      strengthBar.style.width = strength.width;
+      strengthBar.style.backgroundColor = strength.color;
+      strengthLabel.textContent = strength.text;
+      strengthLabel.style.color = strength.color;
+
+      updateFeedback(strength.level);
+      updateSecurityVisualization(strength.level, password);
+    }
+
+    passwordInput.addEventListener('input', evaluatePassword);
+
+    // Virtual keyboard functionality
+    const virtualKeyboard = document.getElementById('virtual-keyboard');
+    const keyboardLetters = document.getElementById('keyboard-letters');
+    const keyboardNumbers = document.getElementById('keyboard-numbers');
+    const keyboardSymbols = document.getElementById('keyboard-symbols');
+    const keyboardModeIndicator = document.getElementById('keyboard-mode-indicator');
+    
+    const shiftBtn = document.getElementById('shift-btn');
+    let isShiftActive = false;
+    let shiftLock = false;
+
+    shiftBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      
+      if (isShiftActive && !shiftLock) {
+        shiftLock = true;
+        shiftBtn.classList.add('active');
+      } else if (shiftLock) {
+        shiftLock = false;
+        isShiftActive = false;
+        shiftBtn.classList.remove('active');
+        updateLetterCase();
+      } else {
+        isShiftActive = true;
+        shiftBtn.classList.add('active');
+        updateLetterCase();
+      }
+    });
+
+    function updateLetterCase() {
+      const letterButtons = document.querySelectorAll('.key-btn-letter');
+      letterButtons.forEach(btn => {
+        if (isShiftActive || shiftLock) {
+          btn.classList.add('uppercase');
+        } else {
+          btn.classList.remove('uppercase');
+        }
+      });
+    }
+
+    function setupLetterButtons() {
+      document.querySelectorAll('.key-btn-letter').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          let key = btn.getAttribute('data-key');
+          
+          if (isShiftActive || shiftLock) {
+            key = key.toUpperCase();
+          }
+          
+          passwordInput.value += key;
+          evaluatePassword();
+          passwordInput.focus();
+
+          if (isShiftActive && !shiftLock) {
+            isShiftActive = false;
+            shiftBtn.classList.remove('active');
+            updateLetterCase();
+          }
+        });
+      });
+    }
+    
+    setupLetterButtons();
+
+    function showLettersMode() {
+      keyboardLetters.style.display = 'block';
+      keyboardNumbers.style.display = 'none';
+      keyboardSymbols.style.display = 'none';
+      keyboardModeIndicator.textContent = 'ABC';
+      keyboardModeIndicator.style.background = '#74b9ff';
+    }
+
+    function showNumbersMode() {
+      keyboardLetters.style.display = 'none';
+      keyboardNumbers.style.display = 'block';
+      keyboardSymbols.style.display = 'none';
+      keyboardModeIndicator.textContent = '?123';
+      keyboardModeIndicator.style.background = '#fdcb6e';
+    }
+
+    function showSymbolsMode() {
+      keyboardLetters.style.display = 'none';
+      keyboardNumbers.style.display = 'none';
+      keyboardSymbols.style.display = 'block';
+      keyboardModeIndicator.textContent = '=\\<';
+      keyboardModeIndicator.style.background = '#a29bfe';
+    }
+
+    document.getElementById('numbers-mode-btn').addEventListener('click', (e) => {
+      e.preventDefault();
+      showNumbersMode();
+    });
+
+    document.getElementById('letters-mode-btn').addEventListener('click', (e) => {
+      e.preventDefault();
+      showLettersMode();
+    });
+
+    document.getElementById('letters-mode-btn-2').addEventListener('click', (e) => {
+      e.preventDefault();
+      showLettersMode();
+    });
+
+    document.getElementById('symbols-mode-btn').addEventListener('click', (e) => {
+      e.preventDefault();
+      showSymbolsMode();
+    });
+
+    document.getElementById('numbers-mode-btn-2').addEventListener('click', (e) => {
+      e.preventDefault();
+      showNumbersMode();
+    });
+
+    document.querySelectorAll('.key-btn-compact[data-key]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const key = btn.getAttribute('data-key');
+        passwordInput.value += key;
+        evaluatePassword();
+        passwordInput.focus();
+      });
+    });
+
+    document.getElementById('space-btn').addEventListener('click', (e) => {
+      e.preventDefault();
+      passwordInput.value += ' ';
+      evaluatePassword();
+      passwordInput.focus();
+    });
+
+    document.getElementById('space-btn-num').addEventListener('click', (e) => {
+      e.preventDefault();
+      passwordInput.value += ' ';
+      evaluatePassword();
+      passwordInput.focus();
+    });
+
+    document.getElementById('space-btn-sym').addEventListener('click', (e) => {
+      e.preventDefault();
+      passwordInput.value += ' ';
+      evaluatePassword();
+      passwordInput.focus();
+    });
+
+    document.getElementById('backspace-btn').addEventListener('click', (e) => {
+      e.preventDefault();
+      passwordInput.value = passwordInput.value.slice(0, -1);
+      evaluatePassword();
+      passwordInput.focus();
+    });
+
+    document.getElementById('backspace-btn-num').addEventListener('click', (e) => {
+      e.preventDefault();
+      passwordInput.value = passwordInput.value.slice(0, -1);
+      evaluatePassword();
+      passwordInput.focus();
+    });
+
+    document.getElementById('backspace-btn-sym').addEventListener('click', (e) => {
+      e.preventDefault();
+      passwordInput.value = passwordInput.value.slice(0, -1);
+      evaluatePassword();
+      passwordInput.focus();
+    });
+
+    document.getElementById('clear-btn').addEventListener('click', (e) => {
+      e.preventDefault();
+      passwordInput.value = '';
+      evaluatePassword();
+      passwordInput.focus();
+    });
+
+    document.getElementById('clear-btn-num').addEventListener('click', (e) => {
+      e.preventDefault();
+      passwordInput.value = '';
+      evaluatePassword();
+      passwordInput.focus();
+    });
+
+    document.getElementById('clear-btn-sym').addEventListener('click', (e) => {
+      e.preventDefault();
+      passwordInput.value = '';
+      evaluatePassword();
+      passwordInput.focus();
+    });
+
+    toggleVisibility.addEventListener('click', () => {
+      isPasswordVisible = !isPasswordVisible;
+      passwordInput.type = isPasswordVisible ? 'text' : 'password';
+      toggleVisibility.textContent = isPasswordVisible ? '👁️' : '👁️‍🗨️';
+    });
+
+    async function onConfigChange(newConfig) {
+      document.getElementById('main-title').textContent = newConfig.main_title || defaultConfig.main_title;
+      document.getElementById('subtitle').textContent = newConfig.subtitle || defaultConfig.subtitle;
+      document.getElementById('instruction-text').textContent = newConfig.instruction_text || defaultConfig.instruction_text;
+
+      const appContainer = document.getElementById('app-container');
+      const primaryColor = newConfig.primary_color || defaultConfig.primary_color;
+      const secondaryColor = newConfig.secondary_color || defaultConfig.secondary_color;
+      appContainer.style.background = `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`;
+
+      evaluatePassword();
+    }
+
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange,
+        mapToCapabilities: (config) => ({
+          recolorables: [
+            {
+              get: () => config.primary_color || defaultConfig.primary_color,
+              set: (value) => {
+                config.primary_color = value;
+                window.elementSdk.setConfig({ primary_color: value });
+              }
+            },
+            {
+              get: () => config.secondary_color || defaultConfig.secondary_color,
+              set: (value) => {
+                config.secondary_color = value;
+                window.elementSdk.setConfig({ secondary_color: value });
+              }
+            }
+          ],
+          borderables: [],
+          fontEditable: undefined,
+          fontSizeable: undefined
+        }),
+        mapToEditPanelValues: (config) => new Map([
+          ["main_title", config.main_title || defaultConfig.main_title],
+          ["subtitle", config.subtitle || defaultConfig.subtitle],
+          ["instruction_text", config.instruction_text || defaultConfig.instruction_text],
+          ["weak_feedback", config.weak_feedback || defaultConfig.weak_feedback],
+          ["medium_feedback", config.medium_feedback || defaultConfig.medium_feedback],
+          ["strong_feedback", config.strong_feedback || defaultConfig.strong_feedback]
+        ])
+      });
+    }
+
+    evaluatePassword();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9ba1dbf90491229b',t:'MTc2Nzc3MjE3NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
